@@ -8,7 +8,7 @@ Remaining useful life (RUL) prediction within the modules of aircraft gas turbin
 | Johannes  | Bordt   | - |
 | Christoph | Behrens | - |
 | Niklas    | Quendt  | - |
-| Frederik  |         | - |
+| Frederik  | Broy     | - |
 
 ## Project Structure 🗂️
 ```
