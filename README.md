@@ -69,3 +69,8 @@ Remaining useful life (RUL) prediction within the modules of aircraft gas turbin
    python -m ipykernel install --user --name=psda python=3.10 # create kernel for jupyter notebook
    jupyter notebook # or open them via IDE (e.g. VSCode or PyCharm)
    ```
+   
+References 📚
+1. A. Saxena, K. Goebel, D. Simon, and N. Eklund, "Damage Propagation Modeling for Aircraft Engine Run-to-Failure Simulation", in the Proceedings of the Ist International Conference on Prognostics and Health Management (PHM08), Denver CO, Oct 2008., retrieved feb. 2016
+2. NASA Ames Prognostics data repository, retrieved feb. 2016, http://ti.arc.nasa.gov/tech/dash/pcoe/prognostic-data-repository/
+3. [Major Challenges in Prognostics: Study on Benchmarking Prognostics Datasets](https://www.phmsociety.org/sites/phmsociety.org/files/phm_submission/2012/phmce_12_004.pdf), O. F. Eker1, F. Camci, and I. K. Jennions1, retrieved feb. 2016

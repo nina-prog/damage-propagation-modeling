@@ -1,6 +1,29 @@
 # DATA LOADER SETTINGS
 dataloading:
-  path_to_data: "data/raw/..."
+  data_dir: "../data/raw/"
+  sets:
+    - number: 1
+      train: "train_FD001.txt"
+      test: "test_FD001.txt"
+      RUL: "RUL_FD001.txt"
+    - number: 2
+      train: "train_FD002.txt"
+      test: "test_FD002.txt"
+      RUL: "RUL_FD002.txt"
+    - number: 3
+      train: "train_FD003.txt"
+      test: "test_FD003.txt"
+      RUL: "RUL_FD003.txt"
+    - number: 4
+      train: "train_FD004.txt"
+      test: "test_FD004.txt"
+      RUL: "RUL_FD004.txt"
+  index: ["UnitNumber", "Cycle"]
+  features:
+    operational_settings: [ "Operation Setting " + str(i) for i in range(1, 4) ]
+    sensor_measure: [ "Sensor Measure" + str(i) for i in range(1, 22) ]
+  columns:
+    <<: [ index, operational_settings, sensor_measure ]
 
 # PREPROCESSING SETTINGS
 preprocessing:
@@ -13,6 +36,7 @@ architecture:
   latent_dims: 8
   beta: 0.01
   dropout_rate: 0.0
+  selected_features: ["MathxHard"]
 
 # FITTING SETTINGS
 fitting:
