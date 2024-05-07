@@ -1,0 +1,16 @@
+# requirements.txt file then can be easily auto generated and it is ensured that the library versions are compatible by using pip-compile ("pip-compile requirements.in" command).
+colorlog
+numpy
+pandas
+scipy
+seaborn
+plotly
+matplotlib
+tqdm
+tensorflow
+scikit-learn
+catboost
+xgboost
+tpot
+imblearn
+bayesian-optimization

@@ -1,0 +1,20 @@
+# DATA LOADER SETTINGS
+dataloading:
+  path_to_data: "data/raw/..."
+
+# PREPROCESSING SETTINGS
+preprocessing:
+  conditions: ["MathxHard"]
+  partition_size: 250
+  fixed_size: 11000
+
+# ARCHITECTURE SETTINGS
+architecture:
+  latent_dims: 8
+  beta: 0.01
+  dropout_rate: 0.0
+
+# FITTING SETTINGS
+fitting:
+  epochs: 128
+  batch_size: 4
