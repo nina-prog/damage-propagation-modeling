@@ -1,3 +1,21 @@
+# PREPROCESSING SETTINGS
+preprocessing:
+  conditions: ["MathxHard"]
+  partition_size: 250
+  fixed_size: 11000
+
+# ARCHITECTURE SETTINGS
+architecture:
+  latent_dims: 8
+  beta: 0.01
+  dropout_rate: 0.0
+  selected_features: ["MathxHard"]
+
+# FITTING SETTINGS
+fitting:
+  epochs: 128
+  batch_size: 4
+
 # DATA LOADER SETTINGS
 dataloading:
   data_dir: "../data/raw/"
@@ -18,27 +36,37 @@ dataloading:
       train: "train_FD004.txt"
       test: "test_FD004.txt"
       RUL: "RUL_FD004.txt"
-  index: ["UnitNumber", "Cycle"]
+  index: &index
+    - UnitNumber
+    - Cycle
   features:
-    operational_settings: [ "Operation Setting " + str(i) for i in range(1, 4) ]
-    sensor_measure: [ "Sensor Measure" + str(i) for i in range(1, 22) ]
+    operational_settings: &operational_settings
+      - Operation Setting 1
+      - Operation Setting 2
+      - Operation Setting 3
+    sensor_measure: &sensor_measure
+      - Sensor Measure 1
+      - Sensor Measure 2
+      - Sensor Measure 3
+      - Sensor Measure 4
+      - Sensor Measure 5
+      - Sensor Measure 6
+      - Sensor Measure 7
+      - Sensor Measure 8
+      - Sensor Measure 9
+      - Sensor Measure 10
+      - Sensor Measure 11
+      - Sensor Measure 12
+      - Sensor Measure 13
+      - Sensor Measure 14
+      - Sensor Measure 15
+      - Sensor Measure 16
+      - Sensor Measure 17
+      - Sensor Measure 18
+      - Sensor Measure 19
+      - Sensor Measure 20
+      - Sensor Measure 21
   columns:
-    <<: [ index, operational_settings, sensor_measure ]
-
-# PREPROCESSING SETTINGS
-preprocessing:
-  conditions: ["MathxHard"]
-  partition_size: 250
-  fixed_size: 11000
-
-# ARCHITECTURE SETTINGS
-architecture:
-  latent_dims: 8
-  beta: 0.01
-  dropout_rate: 0.0
-  selected_features: ["MathxHard"]
-
-# FITTING SETTINGS
-fitting:
-  epochs: 128
-  batch_size: 4
+    - *index
+    - *operational_settings
+    - *sensor_measure

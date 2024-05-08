@@ -20,7 +20,7 @@ def calculate_RUL(data: pd.DataFrame, time_column: str, group_column: str) -> pd
     """
 
     data = data.copy()
-    data['RUL'] = data.groupby(group_column)[time_column].transform(max) - data[time_column]
-    logger.info("RUL generated successfully.")
+    data['RUL'] = data.groupby(group_column)[time_column].max() - data[time_column]
+    logger.debug("RUL generated successfully.")
 
     return data
