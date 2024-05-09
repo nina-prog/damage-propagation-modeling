@@ -1,24 +1,14 @@
-# PREPROCESSING SETTINGS
-preprocessing:
-  conditions: ["MathxHard"]
-  partition_size: 250
-  fixed_size: 11000
-
-# ARCHITECTURE SETTINGS
-architecture:
-  latent_dims: 8
-  beta: 0.01
-  dropout_rate: 0.0
-  selected_features: ["MathxHard"]
-
-# FITTING SETTINGS
-fitting:
-  epochs: 128
-  batch_size: 4
+# PATHS SETTINGS FROM ROOT
+paths:
+  model_dir: "./models/"
+  processed_data_dir: "./data/processed/"
+  prediction_dir: "./data/predictions/"
+  document_dir: "./docs/"
+  plot_dir: "./images/"
 
 # DATA LOADER SETTINGS
 dataloading:
-  data_dir: "../data/raw/"
+  data_dir: "data/raw/"
   sets:
     - number: 1
       train: "train_FD001.txt"
@@ -66,7 +56,26 @@ dataloading:
       - Sensor Measure 19
       - Sensor Measure 20
       - Sensor Measure 21
+  target: "RUL"
   columns:
     - *index
     - *operational_settings
     - *sensor_measure
+
+# PREPROCESSING SETTINGS
+preprocessing:
+  conditions: ["MathxHard"]
+  partition_size: 250
+  fixed_size: 11000
+
+# ARCHITECTURE SETTINGS
+architecture:
+  latent_dims: 8
+  beta: 0.01
+  dropout_rate: 0.0
+  selected_features: ["MathxHard"]
+
+# FITTING SETTINGS
+fitting:
+  epochs: 128
+  batch_size: 4
