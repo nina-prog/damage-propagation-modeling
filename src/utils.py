@@ -55,38 +55,49 @@ def load_data(config_path: str, dataset_num: int, raw=False) -> tuple:
     :return: The loaded data.
     :rtype: tuple
     """
+    logger.info(f"Loading data set {dataset_num}...")
+
     # Load the configurations
     config = load_config(config_path)
 
-    # Access data loading paths
-    data_dir = config['dataloading']['data_dir']
-    data_sets = config['dataloading']['sets']
+    # Access data sets information
+    data_sets = config.get('dataloading', {}).get('sets', [])
+    if not data_sets:
+        raise ValueError("No datasets found in the configuration.")
+    data_dir = config.get('dataloading', {}).get('data_dir', '')
+    if not data_dir:
+        raise ValueError("Data directory not found in the configuration.")
 
-    train_path = data_dir + data_sets[dataset_num]['train']
-    test_path = data_dir + data_sets[dataset_num]['test']
-    RUL_path = data_dir + data_sets[dataset_num]['RUL']
+    # Check if given dataset number is valid
+    if not 1 <= dataset_num <= len(data_sets):
+        raise ValueError(f"Dataset number must be between 1 and {len(data_sets)}.")
 
-    # Access column names
-    column_names = flatten(config['dataloading']['columns'])
+    # Access the paths to the selected data
+    selected_set = data_sets[dataset_num - 1]
+    train_path = data_dir + selected_set.get('train', '')
+    test_path = data_dir + selected_set.get('test', '')
+    RUL_path = data_dir + selected_set.get('RUL', '')
 
     # Load the data
-    logger.info(f"Loading data set {dataset_num}...")
-    train_data = pd.read_csv(train_path, delim_whitespace=True, header=None, names=column_names)
-    test_data = pd.read_csv(test_path, delim_whitespace=True, header=None, names=column_names)
-    RUL_data = pd.read_csv(RUL_path, delim_whitespace=True, header=None, names=['RUL'])
-
-    logger.info("Data loaded successfully.")
+    column_names = flatten(config.get('dataloading', {}).get('columns', []))
+    train_data = pd.read_csv(train_path, header=None, names=column_names, sep=r'\s+', decimal=".")
+    test_data = pd.read_csv(test_path, header=None, names=column_names, sep=r'\s+', decimal=".")
+    RUL_data = pd.read_csv(RUL_path, header=None, names=['RUL'], sep=r'\s+', decimal=".")
 
     if raw:
+        logger.info(f"Loaded raw data for dataset {dataset_num}.")
         logger.info(f"Train Data: {train_data.shape}")
         logger.info(f"Test Data: {test_data.shape}")
         logger.info(f"RUL Data: {RUL_data.shape}")
         return train_data, test_data, RUL_data
-    else:
-        # Map the RUL data to the test data it belongs to
-        test_data['RUL'] = RUL_data['RUL']
-        # Calculate the RUL for the training data
-        train_data = calculate_RUL(data=train_data, time_column="Cycle", group_column="UnitNumber")
-        logger.info(f"Train Data: {train_data.shape}")
-        logger.info(f"Test Data: {test_data.shape}")
-        return train_data, test_data
+
+    # Map the RUL data to the test data it belongs to
+    test_data['RUL'] = RUL_data['RUL']
+
+    # Calculate the RUL for the training data
+    train_data = calculate_RUL(data=train_data, time_column="Cycle", group_column="UnitNumber")
+
+    logger.info(f"Loaded feature and target data for dataset {dataset_num}.")
+    logger.info(f"Train Data: {train_data.shape}")
+    logger.info(f"Test Data: {test_data.shape}")
+    return train_data, test_data
