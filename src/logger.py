@@ -11,7 +11,8 @@ formatter = colorlog.ColoredFormatter(
         'WARNING': 'yellow',
         'ERROR': 'red',
         'CRITICAL': 'red,bg_white',
-    }
+    },
+    datefmt="%Y-%m-%d %H:%M:%S"
 )
 stream_handler = colorlog.StreamHandler(stream=sys.stdout)
 stream_handler.setFormatter(formatter)
