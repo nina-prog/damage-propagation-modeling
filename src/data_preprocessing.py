@@ -20,7 +20,15 @@ def calculate_RUL(data: pd.DataFrame, time_column: str, group_column: str) -> pd
     """
 
     data = data.copy()
-    data['RUL'] = data.groupby(group_column)[time_column].max() - data[time_column]
+    data_max = pd.DataFrame(data[group_column].unique(), columns=[group_column])
+    # Note: You have to get the numpy array, otherwise pandas will map the data incorrectly.
+    # In our case it will take the UnitNumber column as index, and it starts at 1 and not at 0 thus the first value
+    # would be NaN.
+    data_max['MAX'] = data.groupby(group_column)[time_column].max().values
+
+    data = pd.merge(data, data_max, on=group_column, how='left')
+    data['RUL'] = data['MAX'] - data[time_column]
+    data = data.drop('MAX', axis=1)
     logger.debug("RUL generated successfully.")
 
     return data
