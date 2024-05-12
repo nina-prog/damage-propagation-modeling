@@ -27,7 +27,8 @@ def calculate_RUL(data: pd.DataFrame, time_column: str, group_column: str) -> pd
     data_max['MAX'] = data.groupby(group_column)[time_column].max().values
 
     data = pd.merge(data, data_max, on=group_column, how='left')
-    data['RUL'] = data['MAX'] - data[time_column]
+    # Note: Adding one because the current cycle also counts
+    data['RUL'] = data['MAX'] - data[time_column] + 1
     data = data.drop('MAX', axis=1)
     logger.debug("RUL generated successfully.")
 
