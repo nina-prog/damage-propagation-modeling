@@ -42,15 +42,13 @@ def load_config(config_path: str) -> dict:
         raise IsADirectoryError(f"{config_path} is a directory!")
 
 
-def load_data(config_path: str, dataset_num: int, raw=False) -> tuple:
+def load_data(config_path: str, dataset_num: int) -> tuple:
     """Load the specified dataset.
 
+    :param dataset_num: The number of the dataset to load.
+    :type dataset_num: int
     :param config_path: The path to the configuration file.
     :type config_path: str
-    :param path_to_data: The path to the data.
-    :type path_to_data: str
-    :param raw: Whether to return the raw data or combined feature, target data.
-    :type raw: bool
 
     :return: The loaded data.
     :rtype: tuple
@@ -76,28 +74,17 @@ def load_data(config_path: str, dataset_num: int, raw=False) -> tuple:
     selected_set = data_sets[dataset_num - 1]
     train_path = data_dir + selected_set.get('train', '')
     test_path = data_dir + selected_set.get('test', '')
-    RUL_path = data_dir + selected_set.get('RUL', '')
+    test_RUL_path = data_dir + selected_set.get('RUL', '')
 
     # Load the data
     column_names = flatten(config.get('dataloading', {}).get('columns', []))
     train_data = pd.read_csv(train_path, header=None, names=column_names, sep=r'\s+', decimal=".")
     test_data = pd.read_csv(test_path, header=None, names=column_names, sep=r'\s+', decimal=".")
-    RUL_data = pd.read_csv(RUL_path, header=None, names=['RUL'], sep=r'\s+', decimal=".")
+    test_RUL_data = pd.read_csv(test_RUL_path, header=None, names=['RUL'], sep=r'\s+', decimal=".")
 
-    if raw:
-        logger.info(f"Loaded raw data for dataset {dataset_num}.")
-        logger.info(f"Train Data: {train_data.shape}")
-        logger.info(f"Test Data: {test_data.shape}")
-        logger.info(f"RUL Data: {RUL_data.shape}")
-        return train_data, test_data, RUL_data
-
-    # Map the RUL data to the test data it belongs to
-    test_data['RUL'] = RUL_data['RUL']
-
-    # Calculate the RUL for the training data
-    train_data = calculate_RUL(data=train_data, time_column="Cycle", group_column="UnitNumber")
-
-    logger.info(f"Loaded feature and target data for dataset {dataset_num}.")
+    logger.info(f"Loaded raw data for dataset {dataset_num}.")
     logger.info(f"Train Data: {train_data.shape}")
     logger.info(f"Test Data: {test_data.shape}")
-    return train_data, test_data
+    logger.info(f"Test RUL Data: {test_RUL_data.shape}")
+
+    return train_data, test_data, test_RUL_data
