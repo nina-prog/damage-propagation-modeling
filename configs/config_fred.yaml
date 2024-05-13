@@ -1,6 +1,9 @@
 # DATA LOADER SETTINGS
 dataloading:
-  path_to_data: "data/raw/..."
+  path_to_data: "data/raw/"
+  train_path: "train_FD"
+  test_path: "test_FD"
+  RUL_path: "RUL_FD"
 
 # PREPROCESSING SETTINGS
 preprocessing:
