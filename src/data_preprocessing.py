@@ -36,7 +36,7 @@ def calculate_RUL(data: pd.DataFrame, time_column: str, group_column: str) -> pd
 
 def create_rolling_windows_datasets(train_data: pd.DataFrame, test_data: pd.DataFrame, test_RUL_data: pd.DataFrame,
                                     column_id: str = "UnitNumber", column_sort: str = "Cycle", max_timeshift: int = 20,
-                                    min_timeshift: int = 5) -> tuple:
+                                    min_timeshift: int = 0) -> tuple:
     """Create rolling windows datasets for train and test data.
 
     :param train_data: The training data.
@@ -95,6 +95,7 @@ def create_rolling_windows_datasets(train_data: pd.DataFrame, test_data: pd.Data
     y_test = test_RUL_data
     y_test.index = X_test.index
 
+    logger.info("Datasets created successfully.")
     logger.info(f"Shape of X_train: {X_train.shape}")
     logger.info(f"Shape of y_train: {y_train.shape}")
     logger.info(f"Shape of X_test: {X_test.shape}")
