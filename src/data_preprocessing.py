@@ -14,6 +14,8 @@ def calculate_RUL(data: pd.DataFrame, time_column: str, group_column: str) -> pd
     """Generate the remaining useful life (RUL) for the dataset. The RUL is the number of cycles before the machine
     fails. RUL at failure is 1.
 
+    :param group_column: The name of the column that identifies the units.
+    :type group_column: str
     :param time_column: The name of the time column based on which the RUL will be calculated.
     :type time_column: str
     :param data: The dataset.
