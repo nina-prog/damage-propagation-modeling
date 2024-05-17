@@ -37,7 +37,23 @@ def calculate_RUL(data: pd.DataFrame, time_column: str, group_column: str) -> pd
 
 
 class RollingWindowDatasetCreator:
-    def __init__(self, column_id="UnitNumber", column_sort="Cycle", max_timeshift=20, min_timeshift=0, feature_extraction_mode='minimal'):
+    """The RollingWindowDatasetCreator class is responsible for creating rolling windows from the dataset. The class
+    also extracts features from the rolling windows."""
+    def __init__(self, column_id: str = "UnitNumber", column_sort: str = "Cycle", max_timeshift: int = 20,
+                 min_timeshift: int = 0, feature_extraction_mode: str = 'minimal') -> None:
+        """Initialize the RollingWindowDatasetCreator class.
+
+        :param column_id: The name of the column that identifies the units.
+        :type column_id: str
+        :param column_sort: The name of the column based on which the data will be sorted.
+        :type column_sort: str
+        :param max_timeshift: The maximum window size.
+        :type max_timeshift: int
+        :param min_timeshift: The minimum window size.
+        :type min_timeshift: int
+        :param feature_extraction_mode: The mode of feature extraction. It can be 'minimal', 'all', or 'efficient'.
+        :type feature_extraction_mode: str
+        """
         self.column_id = column_id
         self.column_sort = column_sort
         self.max_timeshift = max_timeshift
@@ -46,6 +62,11 @@ class RollingWindowDatasetCreator:
         self.default_fc_parameters = self._get_default_fc_parameters()
 
     def _get_default_fc_parameters(self):
+        """Get the default feature extraction parameters based on the feature_extraction_mode.
+
+        :return: The default feature extraction parameters.
+        :rtype: dict
+        """
         mode_mapping = {
             'minimal': MinimalFCParameters,
             'all': ComprehensiveFCParameters,
@@ -60,7 +81,18 @@ class RollingWindowDatasetCreator:
                 raise ValueError("feature_extraction_mode must be 'minimal', 'all', or 'efficient'.")
             return default_fc_parameters()
 
-    def validate_window_sizes(self, train_data, test_data):
+    def validate_window_sizes(self, train_data: pd.DataFrame, test_data: pd.DataFrame) -> None:
+        """Validate the window sizes. The minimum window size must be greater than 0, the maximum window size must be
+        greater than the minimum window size, and the maximum window size must be less than or equal to the minimum
+        number of cycles in the dataset.
+
+        :param train_data: The training dataset.
+        :type train_data: pd.DataFrame
+        :param test_data: The testing dataset.
+        :type test_data: pd.DataFrame
+
+        :raises ValueError: If the window sizes are invalid.
+        """
         min_cycles_test = test_data.groupby(self.column_id)[self.column_sort].count().min()
         min_cycles_train = train_data.groupby(self.column_id)[self.column_sort].count().min()
         min_cycles_total = min(min_cycles_test, min_cycles_train)
@@ -69,7 +101,19 @@ class RollingWindowDatasetCreator:
             raise ValueError(f"Invalid window sizes: min_window_size={self.min_timeshift}, max_window_size={self.max_timeshift}. "
                              f"Conditions: 0 < min_window_size < max_window_size <= {min_cycles_total}.")
 
-    def _process_data(self, data, data_type, test_RUL_data=None):
+    def _process_data(self, data: pd.DataFrame, data_type: str, test_RUL_data: pd.DataFrame = None) -> tuple:
+        """Create rolling windows and extract features from the data.
+
+        :param data: The dataset.
+        :type data: pd.DataFrame
+        :param data_type: The type of data. It can be 'train' or 'test'.
+        :type data_type: str
+        :param test_RUL_data: The RUL data for the test data.
+        :type test_RUL_data: pd.DataFrame
+
+        :return: The features and the target.
+        :rtype: tuple
+        """
         logger.info(f"Creating rolling windows for {data_type} data...")
         rolled_data = roll_time_series(data, column_id=self.column_id, column_sort=self.column_sort,
                                        max_timeshift=self.max_timeshift, min_timeshift=self.min_timeshift)
@@ -95,7 +139,19 @@ class RollingWindowDatasetCreator:
 
         return X, y
 
-    def create_rolling_windows_datasets(self, train_data, test_data, test_RUL_data):
+    def create_rolling_windows_datasets(self, train_data: pd.DataFrame, test_data: pd.DataFrame, test_RUL_data: pd.DataFrame) -> tuple:
+        """Create the rolling windows datasets.
+
+        :param train_data: The training dataset.
+        :type train_data: pd.DataFrame
+        :param test_data: The testing dataset.
+        :type test_data: pd.DataFrame
+        :param test_RUL_data: The RUL data for the test data.
+        :type test_RUL_data: pd.DataFrame
+
+        :return: The training and testing datasets.
+        :rtype: tuple
+        """
         self.validate_window_sizes(train_data, test_data)
         X_train, y_train = self._process_data(train_data, 'train')
         X_test, y_test = self._process_data(test_data, 'test', test_RUL_data)
