@@ -70,6 +70,7 @@ dataloading:
 preprocessing:
   min_window_size: 5
   max_window_size: 15
+  feature_extraction_mode: "all"
 
 # ARCHITECTURE SETTINGS
 architecture:
