@@ -64,9 +64,8 @@ dataloading:
 
 # PREPROCESSING SETTINGS
 preprocessing:
-  conditions: ["MathxHard"]
-  partition_size: 250
-  fixed_size: 11000
+  max_window_size: 20
+  min_window_size: 5
 
 # ARCHITECTURE SETTINGS
 architecture:
