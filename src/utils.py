@@ -1,8 +1,6 @@
 """This file contains a collection of utility functions that can be used for common tasks in this project."""
 import pandas as pd
 import yaml
-import os
-from src.data_preprocessing import calculate_RUL
 
 from src.logger import setup_logger
 
