@@ -1,7 +1,7 @@
 """This file contains a collection of utility functions that can be used for common tasks in this project."""
 import pandas as pd
 from tsfresh.feature_extraction import extract_features
-from tsfresh.feature_extraction.settings import MinimalFCParameters
+from tsfresh.feature_extraction.settings import MinimalFCParameters, EfficientFCParameters, ComprehensiveFCParameters
 from tsfresh.utilities.dataframe_functions import impute
 from tsfresh.utilities.dataframe_functions import roll_time_series
 
@@ -36,7 +36,7 @@ def calculate_RUL(data: pd.DataFrame, time_column: str, group_column: str) -> pd
 
 def create_rolling_windows_datasets(train_data: pd.DataFrame, test_data: pd.DataFrame, test_RUL_data: pd.DataFrame,
                                     column_id: str = "UnitNumber", column_sort: str = "Cycle", max_timeshift: int = 20,
-                                    min_timeshift: int = 0) -> tuple:
+                                    min_timeshift: int = 0, feature_extraction_mode:str or dict = 'minimal') -> tuple:
     """Create rolling windows datasets for train and test data.
 
     :param train_data: The training data.
@@ -53,10 +53,27 @@ def create_rolling_windows_datasets(train_data: pd.DataFrame, test_data: pd.Data
     :type max_timeshift: int
     :param min_timeshift: The minimum number of cycles of a rolling window.
     :type min_timeshift: int
+    :param feature_extraction_mode: The feature extraction mode. Can be either 'minimal', 'efficient' or 'all' or a
+        dictionary.
+        'minimal': Uses the MinimalFCParameters class to generate the features.
+        'efficient': Uses the EfficientFCParameters class to generate the features.
+        'all': Uses the ComprehensiveFCParameters class to generate the features.
+    :type feature_extraction_mode: str or dict
 
     :return: The train and test datasets.
     :rtype: tuple
     """
+
+    if isinstance(feature_extraction_mode, dict):
+        default_fc_parameters = feature_extraction_mode
+    elif feature_extraction_mode == 'minimal':
+        default_fc_parameters = MinimalFCParameters()
+    elif feature_extraction_mode == 'all':
+        default_fc_parameters = ComprehensiveFCParameters()
+    elif feature_extraction_mode == 'efficient':
+        default_fc_parameters = EfficientFCParameters()
+    else:
+        raise ValueError("feature_extraction_mode must be either 'minimal' or 'all'.")
 
     logger.info("Creating rolling windows for train data...")
     train_data_rolled = roll_time_series(train_data, column_id=column_id, column_sort=column_sort,
@@ -65,7 +82,7 @@ def create_rolling_windows_datasets(train_data: pd.DataFrame, test_data: pd.Data
     logger.info("Extracting features for train data...")
     X_train = extract_features(train_data_rolled.drop([column_id], axis=1),
                                column_id="id", column_sort=column_sort,
-                               default_fc_parameters=MinimalFCParameters(),
+                               default_fc_parameters=default_fc_parameters,
                                impute_function=impute, show_warnings=False)
     # add index names
     X_train.index = X_train.index.rename([column_id, column_sort])
@@ -86,7 +103,7 @@ def create_rolling_windows_datasets(train_data: pd.DataFrame, test_data: pd.Data
     logger.info("Extracting features for test data...")
     X_test = extract_features(filtered_test_data_rolled.drop([column_id], axis=1),
                               column_id="id", column_sort=column_sort,
-                              default_fc_parameters=MinimalFCParameters(),
+                              default_fc_parameters=default_fc_parameters,
                               impute_function=impute, show_warnings=False)
     # add index names
     X_test.index = X_test.index.rename([column_id, column_sort])
