@@ -7,8 +7,7 @@ from src.logger import setup_logger
 logger = setup_logger(__name__, level='INFO')  # Change the level to 'DEBUG' to see more information
 
 
-def identify_missing_values(df: pd.DataFrame, threshold: float = 0.1, drop: bool = False) -> Union[
-    pd.DataFrame, List[str]]:
+def identify_missing_values(df: pd.DataFrame, threshold: float = 0.1, drop: bool = False) -> Union[pd.DataFrame, List[str]]:
     """
     Identify features with missing values above a certain threshold.
 
@@ -52,3 +51,26 @@ def identify_single_unique_features(df: pd.DataFrame, drop: bool = False) -> Uni
         return df
     else:
         return single_unique_features
+
+
+def format_dtype(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Formats the data types of columns in a pandas DataFrame.
+
+    :param df: The input dataframe to be formatted.
+    :type df: pandas.DataFrame
+
+    :return: The formatted dataframe.
+    :rtype: pandas.DataFrame
+    """
+    # categorical values
+    cat_cols = df.select_dtypes(include='object').columns.tolist()
+    df[cat_cols] = df[cat_cols].astype('category')
+
+    logger.info(f"Found {len(cat_cols)} categorical columns: {cat_cols}")
+
+    return df
+
+
+# TODO: Implement match case for Python 3.10
+# TODO: Import the necessary functions from the required libraries
