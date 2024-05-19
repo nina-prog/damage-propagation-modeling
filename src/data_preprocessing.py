@@ -1,6 +1,6 @@
 """This file contains a collection of utility functions that can be used for common tasks in this project."""
 import pandas as pd
-from tsfresh.feature_extraction import extract_features
+from tsfresh.feature_extraction import extract_features, feature_calculators
 from tsfresh.feature_extraction.settings import MinimalFCParameters, EfficientFCParameters, ComprehensiveFCParameters
 from tsfresh.utilities.dataframe_functions import impute
 from tsfresh.utilities.dataframe_functions import roll_time_series
@@ -36,7 +36,8 @@ def calculate_RUL(data: pd.DataFrame, time_column: str, group_column: str) -> pd
 
 def create_rolling_windows_datasets(train_data: pd.DataFrame, test_data: pd.DataFrame, test_RUL_data: pd.DataFrame,
                                     column_id: str = "UnitNumber", column_sort: str = "Cycle", max_timeshift: int = 20,
-                                    min_timeshift: int = 0, feature_extraction_mode:str or dict = 'minimal') -> tuple:
+                                    min_timeshift: int = 0, feature_extraction_mode:str or dict = 'minimal',
+                                    feature_list: list = ['sum_values', 'abs_energy', 'fft_coefficient', 'benford_correlation', 'permutation_entropy', 'median', 'first_location_of_maximum', 'percentage_of_reoccurring_values_to_all_values', 'sum_of_reoccurring_values', 'sum_of_reoccurring_data_points', 'ratio_value_number_to_time_series_length', 'change_quantiles', 'maximum', 'absolute_maximum', 'quantile', 'binned_entropy', 'agg_linear_trend', 'cwt_coefficients',  '']) -> tuple:
     """Create rolling windows datasets for train and test data.
 
     :param train_data: The training data.
@@ -58,7 +59,10 @@ def create_rolling_windows_datasets(train_data: pd.DataFrame, test_data: pd.Data
         'minimal': Uses the MinimalFCParameters class to generate the features.
         'efficient': Uses the EfficientFCParameters class to generate the features.
         'all': Uses the ComprehensiveFCParameters class to generate the features.
+        'custom': Uses a custom list of parameters which at most are equal to the EfficientFCParameters class to generate the features.
     :type feature_extraction_mode: str or dict
+    :param feature_list: For defining a custom feature list in the feature extraction mode "custom"
+    :type  feature_list: list[str]
 
     :return: The train and test datasets.
     :rtype: tuple
@@ -72,6 +76,15 @@ def create_rolling_windows_datasets(train_data: pd.DataFrame, test_data: pd.Data
         default_fc_parameters = ComprehensiveFCParameters()
     elif feature_extraction_mode == 'efficient':
         default_fc_parameters = EfficientFCParameters()
+    elif feature_extraction_mode == 'ds4_custom':
+        default_fc_parameters = EfficientFCParameters()
+        for fname in feature_calculators.__dict__.keys():
+            if fname in default_fc_parameters and not fname in feature_list:
+                del default_fc_parameters[fname]
+
+
+
+
     else:
         raise ValueError("feature_extraction_mode must be either 'minimal' or 'all'.")
 
