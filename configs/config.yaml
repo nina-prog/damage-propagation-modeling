@@ -14,18 +14,22 @@ dataloading:
       train: "train_FD001.txt"
       test: "test_FD001.txt"
       RUL: "RUL_FD001.txt"
+      min_cycle: 31
     - number: 2
       train: "train_FD002.txt"
       test: "test_FD002.txt"
       RUL: "RUL_FD002.txt"
+      min_cycle: 21
     - number: 3
       train: "train_FD003.txt"
       test: "test_FD003.txt"
       RUL: "RUL_FD003.txt"
+      min_cycle: 38
     - number: 4
       train: "train_FD004.txt"
       test: "test_FD004.txt"
       RUL: "RUL_FD004.txt"
+      min_cycle: 19
   index: &index
     - UnitNumber
     - Cycle
@@ -64,8 +68,9 @@ dataloading:
 
 # PREPROCESSING SETTINGS
 preprocessing:
-  max_window_size: 20
   min_window_size: 5
+  max_window_size: 15
+  feature_extraction_mode: "all"
 
 # ARCHITECTURE SETTINGS
 architecture:
