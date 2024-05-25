@@ -3,7 +3,7 @@ the dataset. The class also extracts features from the rolling windows. The clas
 testing datasets for the RUL prediction task."""
 import pandas as pd
 
-from tsfresh.feature_extraction import extract_features, MinimalFCParameters, ComprehensiveFCParameters, EfficientFCParameters
+from tsfresh.feature_extraction import extract_features, feature_calculators, MinimalFCParameters, ComprehensiveFCParameters, EfficientFCParameters
 from tsfresh.utilities.dataframe_functions import impute
 from tsfresh.utilities.dataframe_functions import roll_time_series
 
@@ -40,7 +40,7 @@ class RollingWindowDatasetCreator:
     """The RollingWindowDatasetCreator class is responsible for creating rolling windows from the dataset. The class
     also extracts features from the rolling windows."""
     def __init__(self, column_id: str = "UnitNumber", column_sort: str = "Cycle", max_timeshift: int = 20,
-                 min_timeshift: int = 0, feature_extraction_mode: str = 'minimal') -> None:
+                 min_timeshift: int = 0, feature_extraction_mode: str = 'minimal', feature_list: list = ['sum_values', 'abs_energy', 'fft_coefficient', 'benford_correlation', 'permutation_entropy', 'median', 'first_location_of_maximum', 'percentage_of_reoccurring_values_to_all_values', 'sum_of_reoccurring_values', 'sum_of_reoccurring_data_points', 'ratio_value_number_to_time_series_length', 'change_quantiles', 'maximum', 'absolute_maximum', 'quantile', 'binned_entropy', 'agg_linear_trend', 'cwt_coefficients',  '']) -> None:
         """Initialize the RollingWindowDatasetCreator class.
 
         :param column_id: The name of the column that identifies the units.
@@ -51,15 +51,19 @@ class RollingWindowDatasetCreator:
         :type max_timeshift: int
         :param min_timeshift: The minimum window size.
         :type min_timeshift: int
-        :param feature_extraction_mode: The mode of feature extraction. It can be 'minimal', 'all', or 'efficient'.
+        :param feature_extraction_mode: The mode of feature extraction. It can be 'minimal', 'all', 'efficient' or 'custom'.
         :type feature_extraction_mode: str
+        :param feature_list: For defining a custom feature list in the feature extraction mode "custom"
+        :type  feature_list: list[str]
         """
         self.column_id = column_id
         self.column_sort = column_sort
         self.max_timeshift = max_timeshift
         self.min_timeshift = min_timeshift
         self.feature_extraction_mode = feature_extraction_mode
+        self.feature_list = feature_list
         self.default_fc_parameters = self._get_default_fc_parameters()
+
 
     def _get_default_fc_parameters(self):
         """Get the default feature extraction parameters based on the feature_extraction_mode.
@@ -67,10 +71,17 @@ class RollingWindowDatasetCreator:
         :return: The default feature extraction parameters.
         :rtype: dict
         """
+        if self.feature_extraction_mode == 'custom':
+            custom_fc_parameters = EfficientFCParameters()
+            for fname in feature_calculators.__dict__.keys():
+                if fname in custom_fc_parameters and not fname in self.feature_list:
+                    del custom_fc_parameters[fname]
+
         mode_mapping = {
             'minimal': MinimalFCParameters,
             'all': ComprehensiveFCParameters,
-            'efficient': EfficientFCParameters
+            'efficient': EfficientFCParameters,
+            'custom': custom_fc_parameters
         }
 
         if isinstance(self.feature_extraction_mode, dict):
@@ -78,7 +89,7 @@ class RollingWindowDatasetCreator:
         else:
             default_fc_parameters = mode_mapping.get(self.feature_extraction_mode)
             if default_fc_parameters is None:
-                raise ValueError("feature_extraction_mode must be 'minimal', 'all', or 'efficient'.")
+                raise ValueError("feature_extraction_mode must be 'minimal', 'all', 'efficient' or 'custom'.")
             return default_fc_parameters()
 
     def validate_window_sizes(self, train_data: pd.DataFrame, test_data: pd.DataFrame) -> None:
