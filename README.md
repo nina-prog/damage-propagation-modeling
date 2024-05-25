@@ -70,6 +70,22 @@ Remaining useful life (RUL) prediction within the modules of aircraft gas turbin
    jupyter notebook # or open them via IDE (e.g. VSCode or PyCharm)
    ```
    
+### Pipeline Steps 🛠️
+1. Data Loading
+2. Data Preprocessing
+   * Data Cleaning
+   * Rolling Window Creation with Feature Engineering
+   * Feature Selection
+   * Data Scaling (Normalization/Standardization for numerical features)
+   * Data Splitting
+3. Model Training
+   * Classic ML Models: 
+   * Deep Learning Models: 
+   * Hybrid Models: 
+4. Model Evaluation
+   * Metrics: Mean Absolute Error (MAE), Mean Squared Error (MSE), Root Mean Squared Error (RMSE), R² Score
+   * Visualization:
+
 References 📚
 1. A. Saxena, K. Goebel, D. Simon, and N. Eklund, "Damage Propagation Modeling for Aircraft Engine Run-to-Failure Simulation", in the Proceedings of the Ist International Conference on Prognostics and Health Management (PHM08), Denver CO, Oct 2008., retrieved feb. 2016
 2. NASA Ames Prognostics data repository, retrieved feb. 2016, http://ti.arc.nasa.gov/tech/dash/pcoe/prognostic-data-repository/
