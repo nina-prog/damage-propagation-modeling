@@ -1,4 +1,4 @@
-"""This file contains a collection of utility functions that can be used for common tasks in this project."""
+"""This file contains functions for data loading"""
 import pandas as pd
 import yaml
 
