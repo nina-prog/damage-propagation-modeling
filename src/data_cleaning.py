@@ -71,7 +71,7 @@ def format_dtype(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def get_uncorrelated_features(df: pd.DataFrame, threshold: float = 0.9, target: str = None) -> List[str]:
+def get_uncorrelated_features(df: pd.DataFrame, threshold: float = 0.2, target: str = None) -> List[str]:
     """
     Get features from the input DataFrame that are not highly correlated with the target column.
 
