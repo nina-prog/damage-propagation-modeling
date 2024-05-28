@@ -166,8 +166,8 @@ def clean_data(train_df: pd.DataFrame, test_df: pd.DataFrame, method: Union[str,
     features_to_drop = list(features_to_drop_set)
 
     # drop features
-    cleaned_train_df.drop(columns=features_to_drop, inplace=True)
-    cleaned_test_df.drop(columns=features_to_drop, inplace=True)
+    cleaned_train_df = cleaned_train_df.drop(columns=features_to_drop)
+    cleaned_test_df = cleaned_test_df.drop(columns=features_to_drop)
 
     logger.info("Data cleaning completed.")
     logger.info(f"Original train DataFrame shape: {train_df.shape}, Resulting train DataFrame shape: {cleaned_train_df.shape}")
