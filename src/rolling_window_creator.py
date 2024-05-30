@@ -39,25 +39,25 @@ def calculate_RUL(data: pd.DataFrame, time_column: str, group_column: str) -> pd
 class RollingWindowDatasetCreator:
     """The RollingWindowDatasetCreator class is responsible for creating rolling windows from the dataset. The class
     also extracts features from the rolling windows."""
-    def __init__(self, column_id: str = "UnitNumber", column_sort: str = "Cycle", max_timeshift: int = 20,
-                 min_timeshift: int = 0, feature_extraction_mode: str = 'minimal') -> None:
+    def __init__(self, column_id: str = "UnitNumber", column_sort: str = "Cycle", max_window_size: int = 20,
+                 min_window_size: int = 0, feature_extraction_mode: str = 'minimal') -> None:
         """Initialize the RollingWindowDatasetCreator class.
 
         :param column_id: The name of the column that identifies the units.
         :type column_id: str
         :param column_sort: The name of the column based on which the data will be sorted.
         :type column_sort: str
-        :param max_timeshift: The maximum window size.
-        :type max_timeshift: int
-        :param min_timeshift: The minimum window size.
-        :type min_timeshift: int
+        :param max_window_size: The maximum window size.
+        :type max_window_size: int
+        :param min_window_size: The minimum window size.
+        :type min_window_size: int
         :param feature_extraction_mode: The mode of feature extraction. It can be 'minimal', 'all', or 'efficient'.
         :type feature_extraction_mode: str
         """
         self.column_id = column_id
         self.column_sort = column_sort
-        self.max_timeshift = max_timeshift
-        self.min_timeshift = min_timeshift
+        self.max_window_size = max_window_size
+        self.min_window_size = min_window_size
         self.feature_extraction_mode = feature_extraction_mode
         self.default_fc_parameters = self._get_default_fc_parameters()
 
@@ -97,8 +97,8 @@ class RollingWindowDatasetCreator:
         min_cycles_train = train_data.groupby(self.column_id)[self.column_sort].count().min()
         min_cycles_total = min(min_cycles_test, min_cycles_train)
 
-        if not (0 < self.min_timeshift < self.max_timeshift <= min_cycles_total):
-            raise ValueError(f"Invalid window sizes: min_window_size={self.min_timeshift}, max_window_size={self.max_timeshift}. "
+        if not (0 < self.min_window_size < self.max_window_size <= min_cycles_total):
+            raise ValueError(f"Invalid window sizes: min_window_size={self.min_window_size}, max_window_size={self.max_window_size}. "
                              f"Conditions: 0 < min_window_size < max_window_size <= {min_cycles_total}.")
 
     def _process_data(self, data: pd.DataFrame, data_type: str, test_RUL_data: pd.DataFrame = None) -> tuple:
@@ -115,10 +115,12 @@ class RollingWindowDatasetCreator:
         :rtype: tuple
         """
         logger.info(f"Creating rolling windows for {data_type} data...")
+        # -1 has to be used because maximum timeshift when expecting a window of size 20 has to be 19, since the current
+        # cycle is also included in the window
         rolled_data = roll_time_series(data, column_id=self.column_id, column_sort=self.column_sort,
-                                       max_timeshift=self.max_timeshift, min_timeshift=self.min_timeshift)
+                                       max_timeshift=self.max_window_size-1, min_timeshift=self.min_window_size)
         if data_type == 'test':
-            rolled_data = rolled_data.groupby(self.column_id).tail(self.max_timeshift)
+            rolled_data = rolled_data.groupby(self.column_id).tail(self.max_window_size)
 
         logger.info(f"Extracting features for {data_type} data...")
         X = extract_features(rolled_data.drop([self.column_id], axis=1),
