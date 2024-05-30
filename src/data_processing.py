@@ -1,4 +1,3 @@
-# TODO: Change comment!
 """This file contains functions for the data processing"""
 import numpy as np
 import pandas as pd
