@@ -26,15 +26,15 @@ class CNNModel1(MainNNModel):
         # Architecture
         self.layer1_conv = torch.nn.Conv2d(in_channels=1, out_channels=40, kernel_size=3, padding=1)
         self.batchnorm_2 = torch.nn.BatchNorm2d(num_features=40)
-        self.layer2_conv = torch.nn.Conv2d(in_channels=40, out_channels=40, kernel_size=3, padding=1)
-        self.batchnorm_3 = torch.nn.BatchNorm2d(num_features=40)
-        self.layer3_conv = torch.nn.Conv2d(in_channels=40, out_channels=40, kernel_size=3, padding=1)
-        self.batchnorm_4 = torch.nn.BatchNorm2d(num_features=40)
-        self.layer4_conv = torch.nn.Conv2d(in_channels=40, out_channels=40, kernel_size=3, padding=1)
-        self.batchnorm_5 = torch.nn.BatchNorm2d(num_features=40)
-        self.layer5_conv = torch.nn.Conv2d(in_channels=40, out_channels=40, kernel_size=3, padding=1)
+        self.layer2_conv = torch.nn.Conv2d(in_channels=40, out_channels=30, kernel_size=3, padding=1)
+        self.batchnorm_3 = torch.nn.BatchNorm2d(num_features=30)
+        self.layer3_conv = torch.nn.Conv2d(in_channels=30, out_channels=20, kernel_size=3, padding=1)
+        self.batchnorm_4 = torch.nn.BatchNorm2d(num_features=20)
+        self.layer4_conv = torch.nn.Conv2d(in_channels=20, out_channels=10, kernel_size=3, padding=1)
+        self.batchnorm_5 = torch.nn.BatchNorm2d(num_features=10)
+        self.layer5_conv = torch.nn.Conv2d(in_channels=10, out_channels=5, kernel_size=3, padding=1)
 
-        input_from_conv_layers = window_size * features * 40
+        input_from_conv_layers = window_size * features * 5
         self.batchnorm_6 = torch.nn.BatchNorm1d(num_features=input_from_conv_layers)
         self.fc1 = torch.nn.Linear(input_from_conv_layers, 256)
         self.batchnorm_7 = torch.nn.BatchNorm1d(num_features=256)
