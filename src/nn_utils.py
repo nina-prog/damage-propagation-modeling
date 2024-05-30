@@ -1,30 +1,54 @@
 from sklearn.preprocessing import MinMaxScaler
 import numpy as np
+import pandas as pd
+import os
 
-def scale_data(df):
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import DataLoader, Dataset, random_split
+from torch.optim.lr_scheduler import StepLR
+
+import pandas as pd
+from sklearn.preprocessing import MinMaxScaler
+
+def scale_data(df_train, df_test):
     """
-    Scales the numerical columns in the DataFrame using MinMaxScaler.
-
+    Scales the numerical columns in the DataFrame using MinMaxScaler except "UnitNumber" and "RUL".
+    
     Args:
-        df (pandas.DataFrame): Input DataFrame.
-
+        df_train (pandas.DataFrame): Training DataFrame.
+        df_test (pandas.DataFrame): Testing DataFrame.
+        
     Returns:
-        pandas.DataFrame: Scaled DataFrame.
+        pandas.DataFrame, pandas.DataFrame: Scaled training and testing DataFrames.
     """
     scaler = MinMaxScaler()
     
-    # Select float columns
-    float_columns = df.select_dtypes(include=float).columns.tolist()
+    # Separate "UnitNumber" and "RUL" columns
+    unit_number_train = df_train[['UnitNumber']]
+    unit_number_test = df_test[['UnitNumber']]
+    rul_train = df_train[['RUL']]
+    rul_test = df_test[['RUL']]
     
-    # Scale the data
-    scaled_data = scaler.fit_transform(df[float_columns])
+    # Select all columns except "UnitNumber" and "RUL"
+    other_columns = df_train.columns.difference(['UnitNumber', 'RUL'])
     
-    # Update the DataFrame with scaled data
-    df[float_columns] = scaled_data
-
-    return df
-
-def create_sliding_window(df, window_size=30, drop_columns=["UnitNumber", "Cycle", "RUL"]):
+    # Fit the scaler on the training data and transform it
+    df_train_scaled = df_train.copy()
+    df_train_scaled[other_columns] = scaler.fit_transform(df_train[other_columns])
+    
+    # Transform the test data using the same scaler
+    df_test_scaled = df_test.copy()
+    df_test_scaled[other_columns] = scaler.transform(df_test[other_columns])
+    
+    # Add "UnitNumber" and "RUL" back to the scaled data
+    df_train_scaled = pd.concat([unit_number_train, rul_train, df_train_scaled[other_columns]], axis=1)
+    df_test_scaled = pd.concat([unit_number_test, rul_test, df_test_scaled[other_columns]], axis=1)
+    
+    return df_train_scaled, df_test_scaled
+    
+def create_sliding_window_test(df, window_size=30, drop_columns=["UnitNumber", "RUL"], typ = "test"):
     """
     Creates a sliding window of data for time series prediction.
 
@@ -44,141 +68,81 @@ def create_sliding_window(df, window_size=30, drop_columns=["UnitNumber", "Cycle
         temp = df[df["UnitNumber"] == engine]
         assert temp["UnitNumber"].unique() == engine
 
-        for i in range(len(temp) - window_size + 1):
-            # Extract windowed data and RUL for each window
-            X_temp = temp.iloc[i : (i + window_size)].drop(columns=drop_columns)
-            Y_temp = temp.iloc[(i + window_size - 1)]["RUL"]
-            assert len(X_temp) == window_size
-            X.append(X_temp.to_numpy())
-            y.append(Y_temp)
-            if i == (len(temp) - window_size):
-                assert Y_temp == 1
-
+        X_temp = temp.iloc[-window_size:].drop(columns=drop_columns)
+        
+        # Ensure X_temp has the correct shape by padding if necessary
+        if len(X_temp) < window_size:
+            # Calculate the number of rows to pad
+            pad_rows = window_size - len(X_temp)
+            # Create a DataFrame of zeros with the same columns as X_temp
+            padding = pd.DataFrame(0, index=np.arange(pad_rows), columns=X_temp.columns)
+            # Concatenate the padding DataFrame with X_temp
+            X_temp = pd.concat([padding, X_temp], ignore_index=True)
+        
+        # Ensure the final shape of X_temp
+        assert X_temp.shape[0] == window_size
+        
+        # Convert X_temp to a NumPy array and append to the list
+        X.append(X_temp.to_numpy())
+        
+        # Get the RUL value for the last cycle of the current engine
+        Y_temp = temp.iloc[-1]["RUL"]
+        y.append(Y_temp)
+        
+    # Convert lists to NumPy arrays
     X = np.array(X)
     y = np.array(y)
 
     return X, y
-
-
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import math
-from tqdm import tqdm
-
-class PositionalEncoding(nn.Module):
-    def __init__(self, d_model, dropout=0.1, max_len=5000):
-        super(PositionalEncoding, self).__init__()
-        self.dropout = nn.Dropout(p=dropout)
-
-        # Compute the positional encodings once in log space.
-        pe = torch.zeros(max_len, d_model)
-        position = torch.arange(0, max_len, dtype=torch.float).unsqueeze(1)
-        div_term = torch.exp(torch.arange(0, d_model, 2).float() * (-torch.log(torch.tensor(10000.0)) / d_model))
-        pe[:, 0::2] = torch.sin(position * div_term)
-        pe[:, 1::2] = torch.cos(position * div_term)
-        pe = pe.unsqueeze(0).transpose(0, 1)
-        self.register_buffer('pe', pe)
-
-    def forward(self, x):
-        """
-        Args:
-            x: Tensor of shape (seq_len, batch_size, feature_size)
-        """
-        x = x + self.pe[:x.size(0), :]
-        return self.dropout(x)
-
-class TransformerModel(nn.Module):
-    def __init__(self, feature_size: int, num_heads: int, num_layers: int, dropout: float = 0.1):
-        super(TransformerModel, self).__init__()
-        self.feature_size = feature_size
-        
-        # Positional Encoding
-        self.positional_encoding = PositionalEncoding(feature_size, dropout)
-        
-        # Transformer Encoder
-        self.encoder_layer = nn.TransformerEncoderLayer(d_model=feature_size, nhead=num_heads, dropout=dropout)
-        self.transformer_encoder = nn.TransformerEncoder(self.encoder_layer, num_layers=num_layers)
-        
-        # Output layer
-        self.fc_out = nn.Linear(feature_size, 1) 
-        
-    def forward(self, x: torch.Tensor, mask: torch.Tensor = None) -> torch.Tensor:
-        """
-        Args:
-            x: Tensor of shape (seq_len, batch_size, feature_size)
-            mask: Optional mask of shape (seq_len, seq_len)
-            
-        Returns:
-            out: Tensor of shape (batch_size, 1) for regression
-        """
-        # Add positional encoding
-        x = self.positional_encoding(x)# (seq_len, batch_size, feature_size)
-        x = x.to(torch.float32)
-
-        # Pass through transformer encoder
-        x = self.transformer_encoder(x, mask)  # (seq_len, batch_size, feature_size)
     
-        # Take the mean across the sequence length dimension
-        x = torch.mean(x, dim=0)  # (batch_size, feature_size)
-        
-        # Output layer
-        out = self.fc_out(x)  # (batch_size, 1)
-    
-        return out
-    
-import torch
-import torch.nn as nn
-import torch.optim as optim
-from torch.utils.data import DataLoader, Dataset, random_split
+def create_sliding_window(df, window_size=30, drop_columns=["UnitNumber", "RUL"], typ = "train"):
+    """
+    Creates a sliding window of data for time series prediction.
 
-# Example dataset class
-class TurbofanDataset(Dataset):
-    def __init__(self, data, targets):
-        self.data = torch.from_numpy(data).to(torch.float32)
-        self.targets = torch.from_numpy(targets).to(torch.float32)
+    Args:
+        df (pandas.DataFrame): Input DataFrame containing time series data.
+        window_size (int): Size of the sliding window.
+        drop_columns (list): List of columns to drop from the input DataFrame.
 
-    def __len__(self):
-        return len(self.data)
-
-    def __getitem__(self, idx):
-        return self.data[idx], self.targets[idx]
-
-# Training function
-def train_model(model, dataloader, criterion, optimizer, device):
-    model.train()
-    running_loss = 0.0
-    count = 0
-    for inputs, targets in dataloader:
-        inputs, targets = inputs.to(device), targets.to(device)
-        
-        if count % 44 == 0:
-            print(f"--> {count}/{len(dataloader)}")
-        count += 1
-        optimizer.zero_grad()
-        
-        outputs = model(inputs)
-        loss = criterion(outputs, targets)
-        loss.backward()
-        optimizer.step()
-        
-        running_loss += loss.item() * inputs.size(0)
+    Returns:
+        tuple: A tuple containing X (input) and y (output) arrays.
+    """
+    if typ == "test":
+        return create_sliding_window_test(df, window_size = window_size, drop_columns = drop_columns)
+    else:
+        number_engines = df["UnitNumber"].unique()
+        X, y = [], []
     
-    epoch_loss = running_loss / len(dataloader.dataset)
-    return epoch_loss
+        for engine in number_engines:
+            # Get data for the current engine
+            temp = df[df["UnitNumber"] == engine]
+            assert temp["UnitNumber"].unique() == engine
+    
+            for i in range(len(temp) - window_size + 1):
+                # Extract windowed data and RUL for each window
+                X_temp = temp.iloc[i : (i + window_size)].drop(columns=drop_columns)
+                Y_temp = temp.iloc[(i + window_size - 1)]["RUL"]
+                assert len(X_temp) == window_size
+                X.append(X_temp.to_numpy())
+                y.append(Y_temp)
+    
+        X = np.array(X)
+        y = np.array(y)
+    
+        return X, y
 
-# Evaluation function
-def evaluate_model(model, dataloader, criterion, device):
-    model.eval()
-    running_loss = 0.0
+
+def calculate_RUL_test(test_data, RUL_data):
+    RUL = []
+    for i in RUL_data.iterrows():
+        unit_num = i[0]
+        val = i[1]["RUL"]
+        tmp = test_data[test_data["UnitNumber"] == unit_num + 1]
+        li = list(range(val + len(tmp) - 1, val - 1, -1))
+        for j in li:
+            RUL.append(j)
+        assert RUL[-1] == val
+    assert len(RUL) == len(test_data)
+    test_data["RUL"] = RUL
+    return test_data
     
-    with torch.no_grad():
-        for inputs, targets in dataloader:
-            inputs, targets = inputs.to(device), targets.to(device)
-            outputs = model(inputs)
-            loss = criterion(outputs, targets)
-            
-            running_loss += loss.item() * inputs.size(0)
-    
-    epoch_loss = running_loss / len(dataloader.dataset)
-    return epoch_loss
