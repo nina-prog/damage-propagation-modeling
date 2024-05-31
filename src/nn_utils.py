@@ -12,6 +12,20 @@ from torch.optim.lr_scheduler import StepLR
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 
+def cut_high_RUL(y_train, X_train,  max_val, delete = 0.5):
+    # Step 1: Identify indices of elements with value 133
+    indices_133 = np.where(y_train > max_val - 10)[0]
+    # Step 2: Randomly select 50% of these indices
+    np.random.seed(42)  # For reproducibility, remove or change seed if you don't need reproducibility
+    num_to_delete = int(delete * len(indices_133))
+    indices_to_delete = np.random.choice(indices_133, num_to_delete, replace=False)
+    
+    # Step 3: Delete the elements at these selected indices from both array and X_train
+    y_train = np.delete(y_train, indices_to_delete)
+    X_train = np.delete(X_train, indices_to_delete, axis=0)
+    assert len(y_train) == len(X_train)
+    return y_train, X_train
+
 def scale_data(df_train, df_test):
     """
     Scales the numerical columns in the DataFrame using MinMaxScaler except "UnitNumber" and "RUL".
