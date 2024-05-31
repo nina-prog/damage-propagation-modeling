@@ -14,10 +14,10 @@ from src.logger import setup_logger
 logger = setup_logger(__name__, level='INFO')  # Change the level to 'DEBUG' to see more information
 
 
-def calculate_RUL(data: pd.DataFrame, time_column: str, group_column: str, early_RUL: Union[None, int] = None) -> pd.DataFrame:
+def calculate_RUL(data: pd.DataFrame, time_column: str, group_column: str, clipping_value_of_RUL: Union[None, int] = None) -> pd.DataFrame:
     """Generate the remaining useful life (RUL) for the dataset. The RUL is the number of cycles before the machine
     fails. RUL at failure is 1. A linear degradation or a pice-wise linear degradation can be used to calculate the RUL,
-    depending on the early_RUL value.
+    depending on if a clipping_value_of_RUL value is provided.
 
     :param group_column: The name of the column that identifies the units.
     :type group_column: str
@@ -25,8 +25,8 @@ def calculate_RUL(data: pd.DataFrame, time_column: str, group_column: str, early
     :type time_column: str
     :param data: The dataset.
     :type data: pd.DataFrame
-    :param early_RUL: The RUL value for the early cycles.
-    :type early_RUL: int
+    :param clipping_value_of_RUL: The value to clip the RUL. If None, the RUL will be calculated using linear degradation.
+    :type clipping_value_of_RUL: int
 
     :return: The dataset with the RUL column.
     :rtype: pd.DataFrame
@@ -37,11 +37,8 @@ def calculate_RUL(data: pd.DataFrame, time_column: str, group_column: str, early
     # adding one because the current cycle also counts (RUL at failure is 1)
     data['RUL'] = data['RUL'] + 1
 
-    # TODO: Implement the functionality with early_RUL
-    if early_RUL is not None:
-        temp = data.copy()
-        temp['early_rul_duration'] = temp.groupby(group_column)[time_column].transform("max") - early_RUL
-        logger.warn("Piece-wise linear degradation not implemented yet. Using linear degradation.")
+    if clipping_value_of_RUL is not None:
+        data['RUL'] = data['RUL'].apply(lambda x: clipping_value_of_RUL if x > clipping_value_of_RUL else x)
 
     logger.debug("RUL generated successfully.")
 
@@ -146,7 +143,7 @@ class RollingWindowDatasetCreator:
 
         if data_type == 'train':
             logger.info("Calculating target for train data...")
-            data_rul = calculate_RUL(data=data, time_column=self.column_sort, group_column=self.column_id, early_RUL=self.early_RUL)
+            data_rul = calculate_RUL(data=data, time_column=self.column_sort, group_column=self.column_id, clipping_value_of_RUL=self.early_RUL)
             y = data_rul.set_index([self.column_id, self.column_sort]).sort_index().RUL.to_frame()
             y = y[y.index.isin(X.index)]
             X = X[X.index.isin(y.index)]
