@@ -52,7 +52,7 @@ class RollingWindowDatasetCreator:
     """The RollingWindowDatasetCreator class is responsible for creating rolling windows from the dataset. The class
     also extracts features from the rolling windows."""
     def __init__(self, column_id: str = "UnitNumber", column_sort: str = "Cycle", max_window_size: int = 20,
-                 min_window_size: int = 0, feature_extraction_mode: str = 'minimal', max_RUL: Union[None, int] = None) -> None:
+                 min_window_size: int = 0, feature_extraction_mode: str = 'minimal', early_RUL: Union[None, int] = None) -> None:
         """Initialize the RollingWindowDatasetCreator class.
 
         :param column_id: The name of the column that identifies the units.
@@ -65,8 +65,8 @@ class RollingWindowDatasetCreator:
         :type min_window_size: int
         :param feature_extraction_mode: The mode of feature extraction. It can be 'minimal', 'all', or 'efficient'.
         :type feature_extraction_mode: str
-        :param max_RUL: The RUL value for the early cycles.
-        :type max_RUL: int
+        :param early_RUL: The RUL value for the early cycles.
+        :type early_RUL: int
         """
         self.column_id = column_id
         self.column_sort = column_sort
@@ -74,7 +74,7 @@ class RollingWindowDatasetCreator:
         self.min_window_size = min_window_size
         self.feature_extraction_mode = feature_extraction_mode
         self.default_fc_parameters = self._get_default_fc_parameters()
-        self.max_RUL = max_RUL
+        self.early_RUL = early_RUL
 
     def _get_default_fc_parameters(self):
         """Get the default feature extraction parameters based on the feature_extraction_mode.
@@ -146,7 +146,7 @@ class RollingWindowDatasetCreator:
 
         if data_type == 'train':
             logger.info("Calculating target for train data...")
-            data_rul = calculate_RUL(data=data, time_column=self.column_sort, group_column=self.column_id, max_RUL=self.max_RUL)
+            data_rul = calculate_RUL(data=data, time_column=self.column_sort, group_column=self.column_id, early_RUL=self.early_RUL)
             y = data_rul.set_index([self.column_id, self.column_sort]).sort_index().RUL.to_frame()
             y = y[y.index.isin(X.index)]
             X = X[X.index.isin(y.index)]
