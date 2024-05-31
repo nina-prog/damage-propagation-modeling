@@ -68,8 +68,9 @@ dataloading:
 
 # PREPROCESSING SETTINGS
 preprocessing:
-  min_window_size: 5
-  max_window_size: 15
+  min_window_size: 10
+  max_window_size: 10
+  max_RUL: 130
   feature_extraction_mode:
     quantile:
       - q: 0.1

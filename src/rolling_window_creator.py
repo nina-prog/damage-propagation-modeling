@@ -1,6 +1,8 @@
 """This file contains the RollingWindowDatasetCreator class, which is responsible for creating rolling windows from
 the dataset. The class also extracts features from the rolling windows. The class is used to create the training and
 testing datasets for the RUL prediction task."""
+from typing import Union
+
 import pandas as pd
 
 from tsfresh.feature_extraction import extract_features, MinimalFCParameters, ComprehensiveFCParameters, EfficientFCParameters
@@ -12,9 +14,10 @@ from src.logger import setup_logger
 logger = setup_logger(__name__, level='INFO')  # Change the level to 'DEBUG' to see more information
 
 
-def calculate_RUL(data: pd.DataFrame, time_column: str, group_column: str) -> pd.DataFrame:
+def calculate_RUL(data: pd.DataFrame, time_column: str, group_column: str, early_RUL: Union[None, int] = None) -> pd.DataFrame:
     """Generate the remaining useful life (RUL) for the dataset. The RUL is the number of cycles before the machine
-    fails. RUL at failure is 1.
+    fails. RUL at failure is 1. A linear degradation or a pice-wise linear degradation can be used to calculate the RUL,
+    depending on the early_RUL value.
 
     :param group_column: The name of the column that identifies the units.
     :type group_column: str
@@ -22,6 +25,8 @@ def calculate_RUL(data: pd.DataFrame, time_column: str, group_column: str) -> pd
     :type time_column: str
     :param data: The dataset.
     :type data: pd.DataFrame
+    :param early_RUL: The RUL value for the early cycles.
+    :type early_RUL: int
 
     :return: The dataset with the RUL column.
     :rtype: pd.DataFrame
@@ -31,6 +36,13 @@ def calculate_RUL(data: pd.DataFrame, time_column: str, group_column: str) -> pd
     data['RUL'] = data.groupby(group_column)[time_column].transform("max") - data[time_column]
     # adding one because the current cycle also counts (RUL at failure is 1)
     data['RUL'] = data['RUL'] + 1
+
+    # TODO: Implement the functionality with early_RUL
+    if early_RUL is not None:
+        temp = data.copy()
+        temp['early_rul_duration'] = temp.groupby(group_column)[time_column].transform("max") - early_RUL
+        logger.warn("Piece-wise linear degradation not implemented yet. Using linear degradation.")
+
     logger.debug("RUL generated successfully.")
 
     return data
@@ -40,7 +52,7 @@ class RollingWindowDatasetCreator:
     """The RollingWindowDatasetCreator class is responsible for creating rolling windows from the dataset. The class
     also extracts features from the rolling windows."""
     def __init__(self, column_id: str = "UnitNumber", column_sort: str = "Cycle", max_window_size: int = 20,
-                 min_window_size: int = 0, feature_extraction_mode: str = 'minimal') -> None:
+                 min_window_size: int = 0, feature_extraction_mode: str = 'minimal', max_RUL: Union[None, int] = None) -> None:
         """Initialize the RollingWindowDatasetCreator class.
 
         :param column_id: The name of the column that identifies the units.
@@ -53,6 +65,8 @@ class RollingWindowDatasetCreator:
         :type min_window_size: int
         :param feature_extraction_mode: The mode of feature extraction. It can be 'minimal', 'all', or 'efficient'.
         :type feature_extraction_mode: str
+        :param max_RUL: The RUL value for the early cycles.
+        :type max_RUL: int
         """
         self.column_id = column_id
         self.column_sort = column_sort
@@ -60,6 +74,7 @@ class RollingWindowDatasetCreator:
         self.min_window_size = min_window_size
         self.feature_extraction_mode = feature_extraction_mode
         self.default_fc_parameters = self._get_default_fc_parameters()
+        self.max_RUL = max_RUL
 
     def _get_default_fc_parameters(self):
         """Get the default feature extraction parameters based on the feature_extraction_mode.
@@ -97,7 +112,7 @@ class RollingWindowDatasetCreator:
         min_cycles_train = train_data.groupby(self.column_id)[self.column_sort].count().min()
         min_cycles_total = min(min_cycles_test, min_cycles_train)
 
-        if not (0 < self.min_window_size < self.max_window_size <= min_cycles_total):
+        if not (0 < self.min_window_size <= self.max_window_size <= min_cycles_total):
             raise ValueError(f"Invalid window sizes: min_window_size={self.min_window_size}, max_window_size={self.max_window_size}. "
                              f"Conditions: 0 < min_window_size < max_window_size <= {min_cycles_total}.")
 
@@ -118,7 +133,7 @@ class RollingWindowDatasetCreator:
         # -1 has to be used because maximum timeshift when expecting a window of size 20 has to be 19, since the current
         # cycle is also included in the window
         rolled_data = roll_time_series(data, column_id=self.column_id, column_sort=self.column_sort,
-                                       max_timeshift=self.max_window_size-1, min_timeshift=self.min_window_size)
+                                       max_timeshift=self.max_window_size-1, min_timeshift=self.min_window_size-1)
         if data_type == 'test':
             rolled_data = rolled_data.groupby(self.column_id).tail(self.max_window_size)
 
@@ -131,7 +146,7 @@ class RollingWindowDatasetCreator:
 
         if data_type == 'train':
             logger.info("Calculating target for train data...")
-            data_rul = calculate_RUL(data=data, time_column=self.column_sort, group_column=self.column_id)
+            data_rul = calculate_RUL(data=data, time_column=self.column_sort, group_column=self.column_id, max_RUL=self.max_RUL)
             y = data_rul.set_index([self.column_id, self.column_sort]).sort_index().RUL.to_frame()
             y = y[y.index.isin(X.index)]
             X = X[X.index.isin(y.index)]
