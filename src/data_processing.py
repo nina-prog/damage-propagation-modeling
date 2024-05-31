@@ -1,6 +1,7 @@
 """This file contains functions for the data processing"""
 import numpy as np
 import pandas as pd
+from scipy.signal import find_peaks
 
 from src.logger import setup_logger
 
@@ -124,3 +125,32 @@ def drop_samples_with_clipped_values(X, y, clipping_value_of_RUL: int, size_comp
 
     logger.info(f"The number of samples in the data has dropped from {y.shape[0]} to {new_y.shape[0]}.")
     return new_X, new_y
+
+
+def extract_peaks_from_sensor_signal(data, group_column: str = "UnitNumber", prefix_of_columns: str = "Sensor"):
+    """ This method extracts the cumulative sum of the peaks of the defined columns.
+
+    :param data: The input data.
+    :type data: Pandas Dataframe
+    :param group_column: The name of the column that identifies the units.
+    :type group_column: str
+    :param prefix_of_columns: The name of the column that identifies the columns on which the peaks are extracted.
+    :type prefix_of_columns: str
+
+    :return: The data with the extracted peaks.
+    :rtype: Pandas Dataframe
+    """
+    motor_ids = data[group_column].unique()
+    sensor_measure_columns_names = list(filter(lambda x: x.startswith(prefix_of_columns), data.keys()))
+    dataframes_motor_id = []
+    for motor_id in motor_ids:
+        dataframe_motor_id = pd.DataFrame(data[data[group_column] == motor_id])
+        for sensor_measure_column_name in sensor_measure_columns_names:
+            values = data[data[group_column] == motor_id][sensor_measure_column_name].values
+            peaks = find_peaks(values)
+            count_of_peaks = np.zeros(values.shape)
+            count_of_peaks[peaks[0]] = 1
+            count_of_peaks = np.cumsum(count_of_peaks)
+            dataframe_motor_id[sensor_measure_column_name + ' Peaks'] = count_of_peaks
+        dataframes_motor_id.append(dataframe_motor_id)
+    return pd.concat(dataframes_motor_id)
