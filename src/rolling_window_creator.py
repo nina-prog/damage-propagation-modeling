@@ -24,7 +24,7 @@ def calculate_RUL(data: pd.DataFrame, time_column: str, group_column: str, clipp
     :param data: The dataset.
     :type data: pd.DataFrame
     :param clipping_value_of_RUL: Every higher rul will be clipped to this value.
-    :type clipping_value_of_RUL: pd.DataFrame
+    :type clipping_value_of_RUL: int
 
     :return: The dataset with the RUL column.
     :rtype: pd.DataFrame
