@@ -47,14 +47,17 @@ def scale_data(df_train, df_test):
     df_test_scaled = pd.concat([unit_number_test, rul_test, df_test_scaled[other_columns]], axis=1)
     
     return df_train_scaled, df_test_scaled
-    
-def create_sliding_window_test(df, window_size=30, drop_columns=["UnitNumber", "RUL"], typ = "test"):
+
+
+def create_sliding_window_test(df, window_size=30, column_RUL=True, drop_columns=["UnitNumber", "RUL"], typ = "test"):
     """
     Creates a sliding window of data for time series prediction.
 
     Args:
         df (pandas.DataFrame): Input DataFrame containing time series data.
         window_size (int): Size of the sliding window.
+        column_RUL (bool): If True, the dataframe has a RUL column, otherwise the RUL will not be computed and the
+            y (output) array is None.
         drop_columns (list): List of columns to drop from the input DataFrame.
 
     Returns:
@@ -86,12 +89,16 @@ def create_sliding_window_test(df, window_size=30, drop_columns=["UnitNumber", "
         X.append(X_temp.to_numpy())
         
         # Get the RUL value for the last cycle of the current engine
-        Y_temp = temp.iloc[-1]["RUL"]
-        y.append(Y_temp)
+        if column_RUL:
+            Y_temp = temp.iloc[-1]["RUL"]
+            y.append(Y_temp)
         
     # Convert lists to NumPy arrays
     X = np.array(X)
-    y = np.array(y)
+    if column_RUL:
+        y = np.array(y)
+    else:
+        y = None
 
     return X, y
     
