@@ -4,8 +4,8 @@ numpy
 pandas
 scipy
 seaborn
-plotly
 matplotlib
+plotly
 tqdm
 tensorflow
 scikit-learn
@@ -14,5 +14,5 @@ xgboost
 tpot
 imblearn
 bayesian-optimization
-torch
-ray
+pytorch
+tsfresh
