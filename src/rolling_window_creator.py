@@ -12,7 +12,8 @@ from src.logger import setup_logger
 logger = setup_logger(__name__, level='INFO')  # Change the level to 'DEBUG' to see more information
 
 
-def calculate_RUL(data: pd.DataFrame, time_column: str, group_column: str) -> pd.DataFrame:
+def calculate_RUL(data: pd.DataFrame, time_column: str, group_column: str, clipping_value_of_RUL: int = None) \
+        -> pd.DataFrame:
     """Generate the remaining useful life (RUL) for the dataset. The RUL is the number of cycles before the machine
     fails. RUL at failure is 1.
 
@@ -22,6 +23,8 @@ def calculate_RUL(data: pd.DataFrame, time_column: str, group_column: str) -> pd
     :type time_column: str
     :param data: The dataset.
     :type data: pd.DataFrame
+    :param clipping_value_of_RUL: Every higher rul will be clipped to this value.
+    :type clipping_value_of_RUL: int
 
     :return: The dataset with the RUL column.
     :rtype: pd.DataFrame
@@ -31,6 +34,9 @@ def calculate_RUL(data: pd.DataFrame, time_column: str, group_column: str) -> pd
     data['RUL'] = data.groupby(group_column)[time_column].transform("max") - data[time_column]
     # adding one because the current cycle also counts (RUL at failure is 1)
     data['RUL'] = data['RUL'] + 1
+
+    if clipping_value_of_RUL is not None:
+        data['RUL'] = data['RUL'].apply(lambda x: clipping_value_of_RUL if x > clipping_value_of_RUL else x)
     logger.debug("RUL generated successfully.")
 
     return data

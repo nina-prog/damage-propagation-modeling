@@ -29,8 +29,7 @@ class ExampleCNNModel(MainNNModel):
 
         input_from_conv_layers = (window_size - 8) * 40
         self.fc1 = torch.nn.Linear(input_from_conv_layers, 64)
-        self.fc2 = torch.nn.Linear(64, 64)
-        self.fc3 = torch.nn.Linear(64, 1)
+        self.fc2 = torch.nn.Linear(64, 1)
 
     def forward(self, x):
         x = self.layer1_conv(x)
@@ -48,8 +47,4 @@ class ExampleCNNModel(MainNNModel):
 
         x = self.dropout(x)
         x = self.fc2(x)
-        x = torch.relu(x)
-
-        x = self.dropout(x)
-        x = self.fc3(x)
         return x
