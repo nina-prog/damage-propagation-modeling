@@ -38,7 +38,6 @@ class MainNNModel(pl.LightningModule, ABC):
         pred_y = self.forward(x)
         loss = self.loss(pred_y, y)
         self.log('train_loss', loss)
-        # return loss
         return {"loss": loss, "preds": pred_y, "targets": y}
 
     def validation_step(self, val_batch, batch_idx):
@@ -46,16 +45,13 @@ class MainNNModel(pl.LightningModule, ABC):
         pred_y = self.forward(x)
         loss = self.loss(pred_y, y)
         self.log('val_loss', loss)
-        # return loss
         return {"loss": loss, "preds": pred_y, "targets": y}
 
     def test_step(self, test_batch, batch_idx):
         x, y = test_batch
         pred_y = self.forward(x)
         loss = self.loss(pred_y, y)
-        print(loss)
         self.log('test_loss', loss)
-        # return loss
         return {"loss": loss, "preds": pred_y, "targets": y}
 
     def configure_optimizers(self):
