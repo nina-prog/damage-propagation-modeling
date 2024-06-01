@@ -170,7 +170,6 @@ architecture:
   latent_dims: 8
   beta: 0.01
   dropout_rate: 0.0
-  selected_features: ["MathxHard"]
 
 # FITTING SETTINGS
 fitting:
