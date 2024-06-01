@@ -84,9 +84,9 @@ class RollingWindowDatasetCreator:
                     del custom_fc_parameters[fname]
 
         mode_mapping = {
-            'minimal': MinimalFCParameters,
-            'all': ComprehensiveFCParameters,
-            'efficient': EfficientFCParameters,
+            'minimal': MinimalFCParameters(),
+            'all': ComprehensiveFCParameters(),
+            'efficient': EfficientFCParameters(),
             'custom': custom_fc_parameters,
         }
 
@@ -96,7 +96,7 @@ class RollingWindowDatasetCreator:
             default_fc_parameters = mode_mapping.get(self.feature_extraction_mode)
             if default_fc_parameters is None:
                 raise ValueError("feature_extraction_mode must be 'minimal', 'all', 'efficient' or 'custom'.")
-            return default_fc_parameters()
+            return default_fc_parameters
 
     def validate_window_sizes(self, train_data: pd.DataFrame, test_data: pd.DataFrame) -> None:
         """Validate the window sizes. The minimum window size must be greater than 0, the maximum window size must be
