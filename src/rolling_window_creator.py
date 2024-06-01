@@ -71,8 +71,8 @@ class RollingWindowDatasetCreator:
         :return: The default feature extraction parameters.
         :rtype: dict
         """
+        custom_fc_parameters = EfficientFCParameters()
         if self.feature_extraction_mode == 'custom':
-            custom_fc_parameters = EfficientFCParameters()
             for fname in feature_calculators.__dict__.keys():
                 if fname in custom_fc_parameters and not fname in self.feature_list:
                     del custom_fc_parameters[fname]
@@ -81,7 +81,7 @@ class RollingWindowDatasetCreator:
             'minimal': MinimalFCParameters,
             'all': ComprehensiveFCParameters,
             'efficient': EfficientFCParameters,
-            'custom': custom_fc_parameters
+            'custom': custom_fc_parameters,
         }
 
         if isinstance(self.feature_extraction_mode, dict):
