@@ -68,16 +68,108 @@ dataloading:
 
 # PREPROCESSING SETTINGS
 preprocessing:
-  min_window_size: 5
-  max_window_size: 15
-  feature_extraction_mode: "all"
+  min_window_size: 10
+  max_window_size: 10
+  max_RUL: 130
+  feature_extraction_mode:
+    quantile:
+      - q: 0.1
+      - q: 0.5
+      - q: 0.9
+    number_peaks:
+      - n: 1
+      - n: 5
+    autocorrelation:
+      - lag: 1
+      - lag: 2
+      - lag: 3
+    partial_autocorrelation:
+      - lag: 1
+      - lag: 2
+      - lag: 3
+    linear_trend:
+      - attr: slope
+      - attr: intercept
+    agg_linear_trend:
+      - attr: slope
+        chunk_len: 5
+        f_agg: mean
+      - attr: slope
+        chunk_len: 5
+        f_agg: var
+      - attr: slope
+        chunk_len: 10
+        f_agg: mean
+      - attr: slope
+        chunk_len: 10
+        f_agg: var
+      - attr: intercept
+        chunk_len: 5
+        f_agg: mean
+      - attr: intercept
+        chunk_len: 5
+        f_agg: var
+      - attr: intercept
+        chunk_len: 10
+        f_agg: mean
+      - attr: intercept
+        chunk_len: 10
+        f_agg: var
+    fft_coefficient:
+      - coeff: 0
+        attr: real
+      - coeff: 1
+        attr: real
+      - coeff: 2
+        attr: real
+      - coeff: 0
+        attr: imag
+      - coeff: 1
+        attr: imag
+      - coeff: 2
+        attr: imag
+    fft_aggregated:
+      - aggtype: centroid
+      - aggtype: variance
+    approximate_entropy:
+      - m: 2
+        r: 0.1
+      - m: 2
+        r: 0.5
+    lempel_ziv_complexity:
+      - bins: 5
+    energy_ratio_by_chunks:
+      - num_segments: 10
+        segment_focus: 0
+      - num_segments: 10
+        segment_focus: 1
+      - num_segments: 10
+        segment_focus: 2
+      - num_segments: 10
+        segment_focus: 3
+      - num_segments: 10
+        segment_focus: 4
+    count_above:
+      - t: 0
+    count_below:
+      - t: 0
+    binned_entropy:
+      - max_bins: 10
+    # minimal features
+    maximum: []
+    minimum: []
+    mean: []
+    median: []
+    standard_deviation: []
+    variance: []
+    skewness: []
+    kurtosis: []
 
 # ARCHITECTURE SETTINGS
 architecture:
   latent_dims: 8
   beta: 0.01
   dropout_rate: 0.0
-  selected_features: ["MathxHard"]
 
 # FITTING SETTINGS
 fitting:

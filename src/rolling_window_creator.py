@@ -46,7 +46,7 @@ class RollingWindowDatasetCreator:
     """The RollingWindowDatasetCreator class is responsible for creating rolling windows from the dataset. The class
     also extracts features from the rolling windows."""
     def __init__(self, column_id: str = "UnitNumber", column_sort: str = "Cycle", max_timeshift: int = 20,
-                 min_timeshift: int = 0, feature_extraction_mode: str = 'minimal', feature_list: list = ['sum_values', 'abs_energy', 'fft_coefficient', 'benford_correlation', 'permutation_entropy', 'median', 'first_location_of_maximum', 'percentage_of_reoccurring_values_to_all_values', 'sum_of_reoccurring_values', 'sum_of_reoccurring_data_points', 'ratio_value_number_to_time_series_length', 'change_quantiles', 'maximum', 'absolute_maximum', 'quantile', 'binned_entropy', 'agg_linear_trend', 'cwt_coefficients',  '']) -> None:
+                 min_timeshift: int = 0, feature_extraction_mode: str = 'minimal', feature_list: list = None) -> None:
         """Initialize the RollingWindowDatasetCreator class.
 
         :param column_id: The name of the column that identifies the units.
