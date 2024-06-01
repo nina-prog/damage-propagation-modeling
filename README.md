@@ -23,7 +23,28 @@ Remaining useful life (RUL) prediction within the modules of aircraft gas turbin
 ├───📂models                                ← Saved models (weights) during development.
 ├───📂notebooks                             ← Jupyter Notebooks for the project with the following naming convention: <date>_<author>_<topic>.ipynb
 ├───📂src                                   ← Source code of the project.
-│   ├───📄logger.py                         ← Logging functionality.
+│   ├───📂nn_util                 
+│   │   ├───📂datamodule/lightning           
+│   │   │   ├───📄turbofanDatamodule.py  
+│   │   │   └───📄turbofanDatasets.py     
+│   │   └───📂nn_models/ligthning      
+│   │       ├───📄cnnModel1.py  
+│   │       ├───📄exampleCNNModel.py   
+│   │       ├───📄exampleLSTMModel.py  
+│   │       ├───📄lstmModel1.py  
+│   │       └───📄mainNNModel.py              
+│   ├───📄data_cleaning.py                  
+│   ├───📄data_loading.py                   
+│   ├───📄data_processing.py                
+│   ├───📄data_splitting.py                
+│   ├───📄logger.py                         ← Logging functionality.         
+│   ├───📄model_evaluation.py                         
+│   ├───📄model_training.py                         
+│   ├───📄nn_utils.py                         
+│   ├───📄outlier_detection.py              
+│   ├───📄plotting.py                       
+│   ├───📄rolling_window_creator.py         
+│   ├───📄transfomer_fred.py                                                                  
 │   └───📄utils.py                          ← Utility functions.
 ├───📄.gitignore                            ← Files and directories to be ignored by git.
 ├───📄README.md                             ← Documentation Overview of the project.

@@ -24,70 +24,43 @@ class CNNModel1(MainNNModel):
         self.dropout = torch.nn.Dropout(p=dropout_rate)
 
         # Architecture
-        self.layer1_conv = torch.nn.Conv2d(in_channels=1, out_channels=40, kernel_size=3, padding=1)
-        self.batchnorm_2 = torch.nn.BatchNorm2d(num_features=40)
-        self.layer2_conv = torch.nn.Conv2d(in_channels=40, out_channels=30, kernel_size=3, padding=1)
-        self.batchnorm_3 = torch.nn.BatchNorm2d(num_features=30)
-        self.layer3_conv = torch.nn.Conv2d(in_channels=30, out_channels=20, kernel_size=3, padding=1)
-        self.batchnorm_4 = torch.nn.BatchNorm2d(num_features=20)
-        self.layer4_conv = torch.nn.Conv2d(in_channels=20, out_channels=10, kernel_size=3, padding=1)
-        self.batchnorm_5 = torch.nn.BatchNorm2d(num_features=10)
-        self.layer5_conv = torch.nn.Conv2d(in_channels=10, out_channels=5, kernel_size=3, padding=1)
+        self.layer1_conv = torch.nn.Conv1d(in_channels=features, out_channels=40, kernel_size=5, padding=2)
+        self.layer2_conv = torch.nn.Conv1d(in_channels=40, out_channels=40, kernel_size=5, padding=2)
+        self.layer3_conv = torch.nn.Conv1d(in_channels=40, out_channels=40, kernel_size=5, padding=2)
+        self.layer4_conv = torch.nn.Conv1d(in_channels=40, out_channels=40, kernel_size=5, padding=2)
 
-        input_from_conv_layers = window_size * features * 5
-        self.batchnorm_6 = torch.nn.BatchNorm1d(num_features=input_from_conv_layers)
-        self.fc1 = torch.nn.Linear(input_from_conv_layers, 256)
-        self.batchnorm_7 = torch.nn.BatchNorm1d(num_features=256)
-        self.fc2 = torch.nn.Linear(256, 128)
-        self.batchnorm_8 = torch.nn.BatchNorm1d(num_features=128)
-        self.fc3 = torch.nn.Linear(128, 64)
-        self.batchnorm_9 = torch.nn.BatchNorm1d(num_features=64)
-        self.fc4 = torch.nn.Linear(64, 1)
+        input_from_conv_layers = window_size * 40
+        self.fc1 = torch.nn.Linear(input_from_conv_layers, 128)
+        self.fc2 = torch.nn.Linear(128, 64)
+        self.fc3 = torch.nn.Linear(64, 1)
 
     def forward(self, x):
-
         x = self.layer1_conv(x)
         x = torch.relu(x)
 
-        x = self.batchnorm_2(x)
         x = self.dropout(x)
         x = self.layer2_conv(x)
         x = torch.relu(x)
 
-        x = self.batchnorm_3(x)
         x = self.dropout(x)
         x = self.layer3_conv(x)
         x = torch.relu(x)
 
-        x = self.batchnorm_4(x)
         x = self.dropout(x)
         x = self.layer4_conv(x)
         x = torch.relu(x)
 
-        x = self.batchnorm_5(x)
-        x = self.dropout(x)
-        x = self.layer5_conv(x)
-        x = torch.relu(x)
-
         x = x.flatten(start_dim=1)
 
-        x = self.batchnorm_6(x)
         x = self.dropout(x)
         x = self.fc1(x)
         x = torch.relu(x)
 
-        x = self.batchnorm_7(x)
         x = self.dropout(x)
         x = self.fc2(x)
         x = torch.relu(x)
 
-        x = self.batchnorm_8(x)
         x = self.dropout(x)
         x = self.fc3(x)
-        x = torch.relu(x)
-
-        x = self.batchnorm_9(x)
-        x = self.dropout(x)
-        x = self.fc4(x)
-        x = torch.relu(x)
+        x, _ = torch.max(x, 1)
         return x
