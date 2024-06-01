@@ -14,12 +14,7 @@ from src.logger import setup_logger
 logger = setup_logger(__name__, level='INFO')  # Change the level to 'DEBUG' to see more information
 
 
-<<<<<<< feature/attention_model
 def calculate_RUL(data: pd.DataFrame, time_column: str, group_column: str, clipping_value_of_RUL: Union[None, int] = None) -> pd.DataFrame:
-=======
-def calculate_RUL(data: pd.DataFrame, time_column: str, group_column: str, clipping_value_of_RUL: int = None) \
-        -> pd.DataFrame:
->>>>>>> main
     """Generate the remaining useful life (RUL) for the dataset. The RUL is the number of cycles before the machine
     fails. RUL at failure is 1. A linear degradation or a pice-wise linear degradation can be used to calculate the RUL,
     depending on if a clipping_value_of_RUL value is provided.
@@ -30,11 +25,7 @@ def calculate_RUL(data: pd.DataFrame, time_column: str, group_column: str, clipp
     :type time_column: str
     :param data: The dataset.
     :type data: pd.DataFrame
-<<<<<<< feature/attention_model
     :param clipping_value_of_RUL: The value to clip the RUL. If None, the RUL will be calculated using linear degradation.
-=======
-    :param clipping_value_of_RUL: Every higher rul will be clipped to this value.
->>>>>>> main
     :type clipping_value_of_RUL: int
 
     :return: The dataset with the RUL column.
@@ -48,10 +39,7 @@ def calculate_RUL(data: pd.DataFrame, time_column: str, group_column: str, clipp
 
     if clipping_value_of_RUL is not None:
         data['RUL'] = data['RUL'].apply(lambda x: clipping_value_of_RUL if x > clipping_value_of_RUL else x)
-<<<<<<< feature/attention_model
 
-=======
->>>>>>> main
     logger.debug("RUL generated successfully.")
 
     return data
